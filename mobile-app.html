@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#764ba2">
+    <title>Service Box</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .mobile-container {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #764ba2;
+            color: #764ba2;
+        }
+
+        .pairing-code {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .pairing-code .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #764ba2;
+            letter-spacing: 5px;
+            margin: 10px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-connected {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-waiting {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: #764ba2;
+        }
+
+        .nav-item .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .want-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.3);
+        }
+
+        .action-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .action-card .action-text {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .share-button {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 99;
+            transition: transform 0.2s;
+        }
+
+        .share-button:active {
+            transform: scale(0.95);
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .score-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .score-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .install-prompt.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <h1>💝 Service Box</h1>
+            <div class="subtitle">Strengthen your bond daily</div>
+        </div>
+
+        <div class="content">
+            <!-- Onboarding Screen -->
+            <div id="onboarding" class="screen active">
+                <div class="card">
+                    <h2>Welcome to Service Box</h2>
+                    <p style="margin: 20px 0; color: #666; line-height: 1.6;">
+                        A daily practice for couples to express wants and commit to meaningful actions.
+                    </p>
+                    <button class="btn" onclick="startSetup()">Get Started</button>
+                    <button class="btn btn-outline" onclick="showHowItWorks()">How It Works</button>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div id="howItWorks" class="screen">
+                <div class="card">
+                    <h2>How Service Box Works</h2>
+                    <div style="margin: 20px 0;">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #764ba2; margin-bottom: 10px;">1. Create Your Want List 💭</h3>
+                            <p style="color: #666;">Add behaviors or actions you'd appreciate from your partner.</p>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #764ba2; margin-bottom: 10px;">2. Partner Selects 5 ✅</h3>
+                            <p style="color: #666;">Your partner chooses 5 things they're willing to do this month.</p>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #764ba2; margin-bottom: 10px;">3. Daily Action 🎯</h3>
+                            <p style="color: #666;">Each day, get a random action from the selected 5 to focus on.</p>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #764ba2; margin-bottom: 10px;">4. Guess & Score 🎮</h3>
+                            <p style="color: #666;">Partners guess which action was done. Points for correct guesses!</p>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="startSetup()">Start Setup</button>
+                    <button class="btn btn-secondary" onclick="showOnboarding()">Back</button>
+                </div>
+            </div>
+
+            <!-- Setup Screen -->
+            <div id="setup" class="screen">
+                <div class="card">
+                    <h2>Set Up Your Account</h2>
+                    <div class="input-group">
+                        <label>Your Name</label>
+                        <input type="text" id="userName" placeholder="Enter your name">
+                    </div>
+                    <div class="input-group">
+                        <label>Partner's Name</label>
+                        <input type="text" id="partnerName" placeholder="Enter partner's name">
+                    </div>
+                    <button class="btn" onclick="createAccount()">Create Account</button>
+                    <button class="btn btn-secondary" onclick="showPairExisting()">I Have a Pairing Code</button>
+                </div>
+            </div>
+
+            <!-- Pairing Screen -->
+            <div id="pairing" class="screen">
+                <div class="card">
+                    <h2>Connect with Your Partner</h2>
+                    <div class="pairing-code">
+                        <p style="color: #666; margin-bottom: 10px;">Share this code with your partner:</p>
+                        <div class="code" id="pairingCode">XXXX</div>
+                        <button class="btn btn-outline" onclick="copyCode()">Copy Code</button>
+                    </div>
+                    <p style="text-align: center; color: #666; margin: 20px 0;">OR</p>
+                    <button class="btn" onclick="shareApp()">Share App Link</button>
+                    <button class="btn btn-secondary" onclick="skipPairing()">Set Up Solo First</button>
+                </div>
+            </div>
+
+            <!-- Enter Pairing Code -->
+            <div id="enterCode" class="screen">
+                <div class="card">
+                    <h2>Enter Partner's Code</h2>
+                    <div class="input-group">
+                        <label>Pairing Code</label>
+                        <input type="text" id="partnerCode" placeholder="Enter 4-digit code" maxlength="4" style="text-align: center; letter-spacing: 10px; font-size: 24px; font-weight: bold;">
+                    </div>
+                    <button class="btn" onclick="connectWithPartner()">Connect</button>
+                    <button class="btn btn-secondary" onclick="showSetup()">Back</button>
+                </div>
+            </div>
+
+            <!-- Main Dashboard -->
+            <div id="dashboard" class="screen">
+                <div class="status-badge status-connected" id="connectionStatus">
+                    Connected with <span id="connectedPartner">Partner</span>
+                </div>
+                
+                <div class="score-display">
+                    <div class="score-item">
+                        <div class="score-value" id="myScore">0</div>
+                        <div class="score-label">My Points</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-value" id="partnerScore">0</div>
+                        <div class="score-label">Partner's Points</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <button class="btn" onclick="showWantList()">Create/Edit Want List</button>
+                    <button class="btn" onclick="showWillingSelection()">Select Willing Items</button>
+                    <button class="btn" onclick="getTodaysAction()">Today's Action</button>
+                    <button class="btn btn-secondary" onclick="resetMonth()">New Month Reset</button>
+                </div>
+            </div>
+
+            <!-- Want List -->
+            <div id="wantList" class="screen">
+                <div class="card">
+                    <h2>My Want List</h2>
+                    <p style="color: #666; margin-bottom: 20px;">What would you appreciate from your partner?</p>
+                    
+                    <div class="input-group">
+                        <input type="text" id="newWant" placeholder="e.g., Daily compliment" onkeypress="if(event.key==='Enter') addWant()">
+                    </div>
+                    <button class="btn btn-outline" onclick="addWant()">Add to List</button>
+                    
+                    <div id="wantItems" style="margin-top: 20px;"></div>
+                    
+                    <button class="btn" onclick="saveWantList()">Save List</button>
+                    <button class="btn btn-secondary" onclick="loadTemplates()">Load Common Templates</button>
+                    <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+                </div>
+            </div>
+
+            <!-- Willing Selection -->
+            <div id="willingSelection" class="screen">
+                <div class="card">
+                    <h2>Select 5 You're Willing To Do</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Choose actions you can commit to this month</p>
+                    
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                        <span id="selectionCount" style="font-weight: bold; color: #764ba2;">0/5 Selected</span>
+                    </div>
+                    
+                    <div id="willingItems"></div>
+                    
+                    <button class="btn" onclick="saveWillingList()">Save Selections</button>
+                    <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+                </div>
+            </div>
+
+            <!-- Today's Action -->
+            <div id="todaysAction" class="screen">
+                <div class="action-card">
+                    <h3>Today's Focus</h3>
+                    <div class="action-text" id="currentAction">Loading...</div>
+                </div>
+                
+                <button class="btn" onclick="completeAction()">Mark as Complete</button>
+                <button class="btn btn-outline" onclick="startGuessing()">Partner: Guess the Action!</button>
+                <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+            </div>
+
+            <!-- Guessing Game -->
+            <div id="guessing" class="screen">
+                <div class="card">
+                    <h2>Guess Your Partner's Action</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Which action did they focus on today?</p>
+                    
+                    <div id="guessOptions"></div>
+                    
+                    <button class="btn" onclick="submitGuess()">Submit Guess</button>
+                    <button class="btn btn-secondary" onclick="showDashboard()">Back</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="showDashboard(); return false;">
+                <div class="icon">🏠</div>
+                <div>Home</div>
+            </a>
+            <a href="#" class="nav-item" onclick="showWantList(); return false;">
+                <div class="icon">💭</div>
+                <div>Wants</div>
+            </a>
+            <a href="#" class="nav-item" onclick="getTodaysAction(); return false;">
+                <div class="icon">🎯</div>
+                <div>Today</div>
+            </a>
+            <a href="#" class="nav-item" onclick="showProfile(); return false;">
+                <div class="icon">👤</div>
+                <div>Profile</div>
+            </a>
+        </div>
+
+        <!-- Share Button -->
+        <button class="share-button" onclick="shareApp()">📤</button>
+
+        <!-- Install Prompt -->
+        <div class="install-prompt" id="installPrompt">
+            <h3>Install Service Box</h3>
+            <p style="color: #666; margin: 15px 0;">Add to your home screen for the best experience!</p>
+            <button class="btn" onclick="installApp()">Install App</button>
+            <button class="btn btn-secondary" onclick="dismissInstall()">Not Now</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
