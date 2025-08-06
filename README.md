@@ -1,0 +1,1 @@
+This app allows to innermost participants to upload their Wants, choose from the Wants of the other to create a list of 5 willings, and then have them randomly served up daily.  At the end of the month, each partner tries to guess what Wants have been targeted.
